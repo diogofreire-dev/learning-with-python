@@ -1,6 +1,6 @@
 # Learning with Python
 
-Bem-vindo ao repositório **Learning with Python**! Neste repositório, partilho a minha jornada de aprendizagem da linguagem Python, incluindo exercícios, soluções e projetos desenvolvidos ao longo do curso CS50. Cada etapa reflete o meu progresso em tópicos essenciais como loops, funções e manipulação de dados.
+Bem-vindo ao repositório **Learning with Python**! Aqui vou partilhar a minha jornada de aprendizagem de Python, com os exercícios, soluções e projetos que fui desenvolvendo ao longo do curso CS50. Cada passo reflete o meu progresso em tópicos como loops, funções e manipulação de dados.
 
 ## Índice
 
@@ -11,19 +11,19 @@ Bem-vindo ao repositório **Learning with Python**! Neste repositório, partilho
 
 ## Objetivo
 
-Este repositório tem como objetivo documentar e partilhar o meu aprendizado em Python, oferecendo recursos que podem ser úteis para outros estudantes e profissionais interessados na linguagem.
+Este repositório tem o objetivo de documentar o que aprendi em Python, partilhando tudo o que fiz de útil para quem também queira aprender. Aqui podem encontrar recursos que podem ser úteis para outros estudantes ou para quem estiver interessado em aprender Python.
 
 ## Estrutura do Repositório
 
 O repositório está organizado da seguinte forma:
 
-- `exercicios/`: Contém os exercícios realizados durante o curso, com soluções e explicações.
-- `projetos/`: Inclui projetos desenvolvidos, demonstrando a aplicação prática dos conceitos aprendidos.
-- `notas/`: Anotações pessoais sobre tópicos específicos, dicas e recursos adicionais.
+- `exercicios/`: Aqui estão os exercícios que fiz ao longo do curso, com as soluções e explicações de como fiz cada um.
+- `projetos/`: Contém projetos que desenvolvi, onde aplico de forma mais prática os conceitos que aprendi.
+- `notas/`: Um local com as minhas anotações pessoais sobre alguns tópicos, dicas e links úteis.
 
 ## Como Contribuir
 
-Contribuições são bem-vindas! Se tiver sugestões, melhorias ou correções, sinta-se à vontade para abrir uma *issue* ou enviar um *pull request*.
+Se tiveres sugestões ou quiseres melhorar alguma coisa, estou totalmente aberto a *issues* e *pull requests*. Fica à vontade para contribuir!
 
 ## Licença
 
