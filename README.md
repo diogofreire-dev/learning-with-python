@@ -17,6 +17,7 @@ Este repositório tem o objetivo de documentar o que aprendi em Python, partilha
 
 O repositório está organizado da seguinte forma:
 
+- `aulas_curso/`: Pasta com os projetos desenvolvidos com base dos conhecimentos adquiridos em cada aula do curso.
 - `exercicios/`: Aqui estão os exercícios que fiz ao longo do curso, com as soluções e explicações de como fiz cada um.
 - `projetos/`: Contém projetos que desenvolvi, onde aplico de forma mais prática os conceitos que aprendi.
 - `notas/`: Um local com as minhas anotações pessoais sobre alguns tópicos, dicas e links úteis.
