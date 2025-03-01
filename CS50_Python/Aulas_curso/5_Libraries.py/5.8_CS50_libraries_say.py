@@ -1,4 +1,3 @@
-
 import cowsay
 import sys
 
