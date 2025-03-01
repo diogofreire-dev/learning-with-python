@@ -5,6 +5,6 @@ try:
 except IndexError:
     print("You must provide a name as an argument")
 
-# Exercise.py Name 
+# Exercise.py Name
 # Output:
 # Hello, my name is Name
