@@ -1,6 +1,12 @@
-import sys
-
 from sayings import goodbye
 
-if len(sys.argv) == 2:
-    goodbye(sys.argv[1])
+nome = input("Insira um nome: ")
+goodbye(nome)
+
+
+"""
+from sayings import goodbye
+
+nome = input("Insira um nome: ")
+goodbye(nome)
+"""
