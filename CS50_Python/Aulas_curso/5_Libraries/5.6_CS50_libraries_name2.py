@@ -7,6 +7,6 @@ elif len(sys.argv) > 2:
 
 print("Hello,", sys.argv[1])   
 
-# $ Exercise.py name
+# $ file_name.py name
 # Output : 
 # Hello, name

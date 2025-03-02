@@ -1,11 +1,9 @@
 import json
 import requests
-import sys
 
-if len(sys.argv) != 2:
-    sys.exit()
+nome = input("Insira o nome do artista: ")
 
-response = requests.get("https://itunes.apple.com/search?entity=song&limit=50&term=" + sys.argv[1])
+response = requests.get("https://itunes.apple.com/search?entity=song&limit=50&term=" + nome)
 
 o = response.json()
 for result in o["results"]:
