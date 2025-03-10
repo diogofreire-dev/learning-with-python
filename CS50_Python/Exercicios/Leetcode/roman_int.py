@@ -10,7 +10,7 @@ class Solution(object):
             'M': 1000
         }
         total = 0
-        for i in range (len(s-1)):
+        for i in range (len(s)-1):
             if roman[s[i]] < roman[s[i-1]]:
                 total -= roman[s[i]]
             else:
