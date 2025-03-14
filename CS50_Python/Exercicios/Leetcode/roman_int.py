@@ -11,12 +11,11 @@ class Solution(object):
         }
         total = 0
         for i in range (len(s)-1):
-            if roman[s[i]] < roman[roman[s[i+1]]]:
+            if roman[s[i]] < roman[s[i+1]]:
                 total -= roman[s[i]]
             else:
                 total += roman[s[i]]
         return total + roman[s[-1]]
-
 """
 class Solution(object):
     def romanToInt(self, s):
