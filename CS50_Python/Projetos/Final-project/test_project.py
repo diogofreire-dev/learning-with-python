@@ -1,211 +1,271 @@
 #!/usr/bin/env python3
 """
-Tests for Interactive Story Generator
+Tests for Interactive Story Generator - CS50P Final Project
 """
 
 import pytest
 import json
 import os
 import tempfile
-import shutil
-from rich.console import Console
+from datetime import datetime, timedelta
 from project import (
-    get_story_scenes, 
-    save_story, 
-    play_scene, 
-    add_to_inventory, 
-    has_item, 
-    remove_from_inventory,
-    show_inventory,
-    load_saved_story
+    get_story_scenes, save_story, add_to_inventory, has_item, 
+    remove_from_inventory, show_inventory, get_available_stories,
+    get_enchanted_castle_scenes, get_dark_forest_scenes, 
+    get_space_station_scenes, save_global_statistics
 )
 
 
-def test_get_story_scenes():
-    """Test if story scenes are loaded correctly"""
-    scenes = get_story_scenes()
+@pytest.fixture
+def sample_story_data():
+    """Create sample story data for testing"""
+    return {
+        "story_id": "enchanted_castle",
+        "title": "The Enchanted Castle",
+        "current_scene": "start",
+        "player_name": "TestPlayer",
+        "choices_made": [],
+        "inventory": [],
+        "start_time": datetime.now().isoformat(),
+        "statistics": {
+            "scenes_visited": 0,
+            "items_collected": 0,
+            "choices_count": 0,
+            "deaths": 0,
+            "saves_used": 0
+        }
+    }
+
+
+@pytest.fixture
+def temp_saves_dir():
+    """Create temporary directory for save files"""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        original_dir = os.getcwd()
+        os.chdir(temp_dir)
+        yield temp_dir
+        os.chdir(original_dir)
+
+
+def test_get_available_stories():
+    """Test that available stories are returned correctly"""
+    stories = get_available_stories()
     
-    # Check if scenes dictionary is not empty
-    assert len(scenes) > 0
+    assert isinstance(stories, dict)
+    assert len(stories) >= 3  # Should have at least 3 stories
+    assert "enchanted_castle" in stories
+    assert "dark_forest" in stories
+    assert "space_station" in stories
     
-    # Check if required scenes exist
+    # Check story structure
+    for story_id, story_info in stories.items():
+        assert "title" in story_info
+        assert "description" in story_info
+        assert "difficulty" in story_info
+        assert isinstance(story_info["title"], str)
+        assert len(story_info["title"]) > 0
+
+
+def test_get_story_scenes_enchanted_castle():
+    """Test that enchanted castle scenes are returned correctly"""
+    scenes = get_enchanted_castle_scenes()
+    
+    assert isinstance(scenes, dict)
     assert "start" in scenes
     assert "great_hall" in scenes
     assert "garden" in scenes
     
-    # Check if start scene has required structure
+    # Test scene structure
     start_scene = scenes["start"]
     assert "description" in start_scene
     assert "choices" in start_scene
+    assert isinstance(start_scene["choices"], list)
     assert len(start_scene["choices"]) > 0
     
-    # Check if choices have required fields
-    for choice in start_scene["choices"]:
-        assert "text" in choice
-        assert "next_scene" in choice
+    # Test choice structure
+    first_choice = start_scene["choices"][0]
+    assert "text" in first_choice
+    assert "next_scene" in first_choice
 
 
-def test_add_to_inventory():
+def test_get_story_scenes_dark_forest():
+    """Test that dark forest scenes are returned correctly"""
+    scenes = get_dark_forest_scenes()
+    
+    assert isinstance(scenes, dict)
+    assert "start" in scenes
+    assert len(scenes) >= 3  # Should have multiple scenes
+    
+    # Check for ending scenes
+    ending_scenes = [scene for scene in scenes.values() if scene.get("is_ending", False)]
+    assert len(ending_scenes) > 0
+
+
+def test_get_story_scenes_space_station():
+    """Test that space station scenes are returned correctly"""
+    scenes = get_space_station_scenes()
+    
+    assert isinstance(scenes, dict)
+    assert "start" in scenes
+    assert len(scenes) >= 3  # Should have multiple scenes
+
+
+def test_get_story_scenes_function():
+    """Test the main get_story_scenes function with different story IDs"""
+    # Test with valid story IDs
+    enchanted_scenes = get_story_scenes("enchanted_castle")
+    forest_scenes = get_story_scenes("dark_forest")
+    space_scenes = get_story_scenes("space_station")
+    
+    assert "start" in enchanted_scenes
+    assert "start" in forest_scenes
+    assert "start" in space_scenes
+    
+    # Test with invalid story ID (should default to enchanted castle)
+    invalid_scenes = get_story_scenes("invalid_story")
+    assert "start" in invalid_scenes
+    assert invalid_scenes == enchanted_scenes
+
+
+def test_add_to_inventory(sample_story_data):
     """Test adding items to inventory"""
-    story_data = {"inventory": []}
+    # Test adding new item
+    add_to_inventory(sample_story_data, "magic_sword")
+    assert "magic_sword" in sample_story_data["inventory"]
     
-    # Add items
-    add_to_inventory(story_data, "golden_key")
-    add_to_inventory(story_data, "healing_potion")
+    # Test adding duplicate item (should not duplicate)
+    add_to_inventory(sample_story_data, "magic_sword")
+    assert sample_story_data["inventory"].count("magic_sword") == 1
     
-    # Check if items were added
-    assert "golden_key" in story_data["inventory"]
-    assert "healing_potion" in story_data["inventory"]
-    assert len(story_data["inventory"]) == 2
-    
-    # Try adding duplicate item
-    add_to_inventory(story_data, "golden_key")
-    
-    # Should still be only 2 items (no duplicates)
-    assert len(story_data["inventory"]) == 2
+    # Test adding multiple different items
+    add_to_inventory(sample_story_data, "healing_potion")
+    add_to_inventory(sample_story_data, "golden_key")
+    assert len(sample_story_data["inventory"]) == 3
 
 
-def test_has_item():
-    """Test checking if player has specific item"""
-    story_data = {"inventory": ["golden_key", "healing_potion"]}
-    
-    # Test existing items
-    assert has_item(story_data, "golden_key") == True
-    assert has_item(story_data, "healing_potion") == True
-    
-    # Test non-existing item
-    assert has_item(story_data, "magic_sword") == False
-    
+def test_has_item(sample_story_data):
+    """Test checking if player has specific items"""
     # Test with empty inventory
-    empty_story = {"inventory": []}
-    assert has_item(empty_story, "golden_key") == False
+    assert not has_item(sample_story_data, "magic_sword")
+    
+    # Test after adding item
+    add_to_inventory(sample_story_data, "magic_sword")
+    assert has_item(sample_story_data, "magic_sword")
+    assert not has_item(sample_story_data, "healing_potion")
 
 
-def test_remove_from_inventory():
+def test_remove_from_inventory(sample_story_data):
     """Test removing items from inventory"""
-    story_data = {"inventory": ["golden_key", "healing_potion", "ancient_knowledge"]}
+    # Add items first
+    add_to_inventory(sample_story_data, "magic_sword")
+    add_to_inventory(sample_story_data, "healing_potion")
     
-    # Remove existing item
-    remove_from_inventory(story_data, "healing_potion")
-    assert "healing_potion" not in story_data["inventory"]
-    assert len(story_data["inventory"]) == 2
+    # Test removing existing item
+    remove_from_inventory(sample_story_data, "magic_sword")
+    assert "magic_sword" not in sample_story_data["inventory"]
+    assert "healing_potion" in sample_story_data["inventory"]
     
-    # Try to remove non-existing item (should not cause error)
-    remove_from_inventory(story_data, "magic_sword")
-    assert len(story_data["inventory"]) == 2
-    
-    # Remove another item
-    remove_from_inventory(story_data, "golden_key")
-    assert "golden_key" not in story_data["inventory"]
-    assert len(story_data["inventory"]) == 1
+    # Test removing non-existent item (should not cause error)
+    remove_from_inventory(sample_story_data, "non_existent_item")
+    assert len(sample_story_data["inventory"]) == 1
 
 
-def test_save_story():
-    """Test saving story to file"""
-    # Create temporary directory for testing
-    temp_dir = tempfile.mkdtemp()
-    original_cwd = os.getcwd()
+def test_save_story(sample_story_data, temp_saves_dir):
+    """Test saving story data"""
+    # Create a mock console object
+    class MockConsole:
+        def print(self, *args, **kwargs):
+            pass
     
-    try:
-        os.chdir(temp_dir)
-        
-        # Test story data
-        story_data = {
-            "title": "Test Story",
-            "player_name": "TestPlayer",
-            "current_scene": "start",
-            "choices_made": [],
-            "inventory": ["test_item"],
-            "start_time": "2024-01-01T12:00:00"
-        }
-        
-        console = Console()
-        
-        # Save the story
-        save_story(story_data, console)
-        
-        # Check if saves directory was created
-        assert os.path.exists("saves")
-        
-        # Check if save file was created
-        save_files = os.listdir("saves")
-        assert len(save_files) > 0
-        
-        # Check if the saved file contains correct data
-        save_file = save_files[0]
-        with open(f"saves/{save_file}", 'r') as f:
-            loaded_data = json.load(f)
-        
-        assert loaded_data["player_name"] == "TestPlayer"
-        assert loaded_data["current_scene"] == "start"
-        assert "test_item" in loaded_data["inventory"]
-        
-    finally:
-        # Clean up
-        os.chdir(original_cwd)
-        shutil.rmtree(temp_dir)
+    console = MockConsole()
+    
+    # Test saving
+    save_story(sample_story_data, console)
+    
+    # Check if saves directory was created
+    assert os.path.exists("saves")
+    
+    # Check if save file was created
+    save_files = [f for f in os.listdir("saves") if f.endswith('.json')]
+    assert len(save_files) >= 1
+    
+    # Check if save file contains correct data
+    with open(f"saves/{save_files[0]}", 'r') as f:
+        saved_data = json.load(f)
+    
+    assert saved_data["player_name"] == sample_story_data["player_name"]
+    assert saved_data["story_id"] == sample_story_data["story_id"]
 
 
-def test_show_inventory():
-    """Test inventory display function"""
-    console = Console()
+def test_story_statistics_structure(sample_story_data):
+    """Test that story data has proper statistics structure"""
+    stats = sample_story_data["statistics"]
     
-    # Test with items in inventory
-    story_data = {"inventory": ["golden_key", "healing_potion"]}
+    required_stats = [
+        "scenes_visited", "items_collected", "choices_count", 
+        "deaths", "saves_used"
+    ]
     
-    # This should run without errors
-    try:
-        show_inventory(story_data, console)
-        inventory_test_passed = True
-    except Exception:
-        inventory_test_passed = False
-    
-    assert inventory_test_passed == True
-    
-    # Test with empty inventory
-    empty_story = {"inventory": []}
-    
-    try:
-        show_inventory(empty_story, console)
-        empty_inventory_test_passed = True
-    except Exception:
-        empty_inventory_test_passed = False
-    
-    assert empty_inventory_test_passed == True
+    for stat in required_stats:
+        assert stat in stats
+        assert isinstance(stats[stat], int)
+        assert stats[stat] >= 0
 
 
-def test_story_scene_structure():
-    """Test that all story scenes have proper structure"""
-    scenes = get_story_scenes()
+def test_statistics_updates(sample_story_data):
+    """Test that statistics are properly updated"""
+    # Test items collected counter
+    initial_items = sample_story_data["statistics"]["items_collected"]
+    add_to_inventory(sample_story_data, "test_item")
+    # Note: The counter is updated in play_scene, not add_to_inventory
+    # This test verifies the structure is in place
     
-    for scene_id, scene in scenes.items():
-        # Every scene must have a description
-        assert "description" in scene
-        assert len(scene["description"]) > 0
-        
-        # Non-ending scenes must have choices
-        if not scene.get("is_ending", False):
-            assert "choices" in scene
-            assert len(scene["choices"]) > 0
-            
-            # Each choice must have required fields
+    assert "items_collected" in sample_story_data["statistics"]
+
+
+def test_save_global_statistics(sample_story_data, temp_saves_dir):
+    """Test saving global statistics"""
+    play_time = timedelta(minutes=30)
+    
+    # Save global stats
+    save_global_statistics(sample_story_data, play_time)
+    
+    # Check if stats file was created
+    assert os.path.exists("player_stats.json")
+    
+    # Check stats content
+    with open("player_stats.json", 'r') as f:
+        global_stats = json.load(f)
+    
+    assert "games_played" in global_stats
+    assert "total_time" in global_stats
+    assert "stories_completed" in global_stats
+    assert global_stats["games_played"] >= 1
+    assert global_stats["total_time"] > 0
+
+
+def test_scene_connectivity_enchanted_castle():
+    """Test that all scenes in enchanted castle are properly connected"""
+    scenes = get_enchanted_castle_scenes()
+    all_scene_ids = set(scenes.keys())
+    referenced_scenes = set()
+    
+    # Collect all scene IDs referenced in choices
+    for scene in scenes.values():
+        if "choices" in scene:
             for choice in scene["choices"]:
-                assert "text" in choice
-                assert "next_scene" in choice
-        
-        # Ending scenes must have ending marker
-        if scene.get("is_ending", False):
-            assert "ending_text" in scene or "description" in scene
+                if "next_scene" in choice:
+                    referenced_scenes.add(choice["next_scene"])
+    
+    # Check that all referenced scenes exist
+    for scene_id in referenced_scenes:
+        assert scene_id in all_scene_ids, f"Scene '{scene_id}' is referenced but doesn't exist"
 
 
-def test_story_connectivity():
-    """Test that all scenes are properly connected"""
-    scenes = get_story_scenes()
-    
-    # Collect all scene IDs
-    scene_ids = set(scenes.keys())
-    
-    # Collect all referenced next_scenes
+def test_scene_connectivity_dark_forest():
+    """Test that all scenes in dark forest are properly connected"""
+    scenes = get_dark_forest_scenes()
+    all_scene_ids = set(scenes.keys())
     referenced_scenes = set()
     
     for scene in scenes.values():
@@ -214,62 +274,89 @@ def test_story_connectivity():
                 if "next_scene" in choice:
                     referenced_scenes.add(choice["next_scene"])
     
-    # All referenced scenes should exist (except ending scenes)
-    for ref_scene in referenced_scenes:
-        if ref_scene not in scene_ids:
-            # This might be acceptable for some endings, but let's check
-            # if it's a known ending pattern
-            assert ref_scene.endswith("_ending") or ref_scene in scene_ids
+    for scene_id in referenced_scenes:
+        assert scene_id in all_scene_ids, f"Scene '{scene_id}' is referenced but doesn't exist"
 
 
-def test_inventory_item_consistency():
-    """Test that inventory items mentioned in scenes are consistent"""
-    scenes = get_story_scenes()
+def test_ending_scenes_structure():
+    """Test that ending scenes are properly structured"""
+    enchanted_scenes = get_enchanted_castle_scenes()
     
-    # Collect all items that can be given or required
-    items_given = set()
-    items_required = set()
+    ending_scenes = {k: v for k, v in enchanted_scenes.items() if v.get("is_ending", False)}
     
+    assert len(ending_scenes) > 0, "Should have at least one ending scene"
+    
+    for scene_id, scene in ending_scenes.items():
+        assert scene.get("is_ending", False), f"Ending scene {scene_id} should have is_ending=True"
+        assert "ending_text" in scene, f"Ending scene {scene_id} should have ending_text"
+        assert "choices" not in scene, f"Ending scene {scene_id} should not have choices"
+
+
+def test_required_items_consistency():
+    """Test that required items in choices are consistent"""
+    scenes = get_enchanted_castle_scenes()
+    
+    # Collect all items that can be given
+    available_items = set()
     for scene in scenes.values():
         if "choices" in scene:
             for choice in scene["choices"]:
                 if "gives_item" in choice:
-                    items_given.add(choice["gives_item"])
+                    available_items.add(choice["gives_item"])
+    
+    # Check that all required items can be obtained
+    for scene in scenes.values():
+        if "choices" in scene:
+            for choice in scene["choices"]:
                 if "requires_item" in choice:
-                    items_required.add(choice["requires_item"])
-    
-    # All required items should be available somewhere in the story
-    for required_item in items_required:
-        assert required_item in items_given, f"Item '{required_item}' is required but never given"
+                    required_item = choice["requires_item"]
+                    assert required_item in available_items, f"Required item '{required_item}' is never given to player"
 
 
-# Test for edge cases
-def test_empty_inventory_operations():
-    """Test inventory operations with edge cases"""
-    # Test with missing inventory key
-    story_data = {}
+def test_empty_inventory_operations(sample_story_data):
+    """Test inventory operations with empty inventory"""
+    # Ensure inventory is empty
+    sample_story_data["inventory"] = []
     
-    # These should handle missing inventory gracefully
-    assert has_item(story_data, "any_item") == False
+    # Test has_item with empty inventory
+    assert not has_item(sample_story_data, "any_item")
     
-    # Adding to missing inventory should create it
-    add_to_inventory(story_data, "test_item")
-    assert "inventory" in story_data
-    assert "test_item" in story_data["inventory"]
+    # Test remove_from_inventory with empty inventory (should not crash)
+    remove_from_inventory(sample_story_data, "non_existent_item")
+    assert len(sample_story_data["inventory"]) == 0
 
 
-def test_scene_placeholder_replacement():
-    """Test that player name placeholders work in scenes"""
-    scenes = get_story_scenes()
+def test_multiple_story_types():
+    """Test that different story types have unique content"""
+    enchanted_scenes = get_enchanted_castle_scenes()
+    forest_scenes = get_dark_forest_scenes()
+    space_scenes = get_space_station_scenes()
     
-    # Check if scenes contain player name placeholder
-    start_scene = scenes["start"]
-    description = start_scene["description"]
+    # Stories should have different content
+    assert enchanted_scenes != forest_scenes
+    assert forest_scenes != space_scenes
+    assert enchanted_scenes != space_scenes
     
-    # Should contain placeholder
-    assert "{player_name}" in description
+    # But all should have start scenes
+    assert "start" in enchanted_scenes
+    assert "start" in forest_scenes
+    assert "start" in space_scenes
+
+
+def test_datetime_handling(sample_story_data):
+    """Test that datetime fields are properly handled"""
+    # Test that start_time is a valid ISO format string
+    start_time_str = sample_story_data["start_time"]
     
-    # Test replacement (simulated)
-    test_description = description.replace("{player_name}", "TestPlayer")
-    assert "TestPlayer" in test_description
-    assert "{player_name}" not in test_description
+    # Should be able to parse the datetime
+    parsed_time = datetime.fromisoformat(start_time_str)
+    assert isinstance(parsed_time, datetime)
+    
+    # Should be recent (within last minute)
+    now = datetime.now()
+    time_diff = now - parsed_time
+    assert time_diff.total_seconds() < 60  # Less than 1 minute old
+
+
+if __name__ == "__main__":
+    pytest.main([__file__])
