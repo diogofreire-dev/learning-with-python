@@ -10,8 +10,7 @@ class PasswordGenerator:
         self.root.geometry("890x700")
         self.root.configure(bg='#f8fafc')
         self.root.resizable(False, False)
-        
-        # Cores modernas
+
         self.colors = {
             'primary': '#2563eb',
             'secondary': '#64748b',
@@ -34,7 +33,6 @@ class PasswordGenerator:
         self.setup_ui()
         
     def setup_ui(self):
-        # Criar canvas e scrollbar para scroll
         canvas = tk.Canvas(self.root, bg=self.colors['background'], highlightthickness=0)
         scrollbar = ttk.Scrollbar(self.root, orient="vertical", command=canvas.yview)
         scrollable_frame = tk.Frame(canvas, bg=self.colors['background'])
@@ -46,35 +44,29 @@ class PasswordGenerator:
         
         canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
-        
-        # Pack canvas e scrollbar
+
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
-        
-        # Container principal dentro do scrollable frame
+
         main_frame = tk.Frame(scrollable_frame, bg=self.colors['background'])
         main_frame.pack(fill='both', expand=True, padx=30, pady=20)
-        
-        # Cabeçalho
+
         self.create_header(main_frame)
         
         # Card principal
         card_frame = tk.Frame(main_frame, bg=self.colors['card'], 
                              relief='raised', bd=1)
         card_frame.pack(fill='both', expand=True, pady=20)
-        
-        # Conteúdo do card
+
         content_frame = tk.Frame(card_frame, bg=self.colors['card'])
         content_frame.pack(fill='both', expand=True, padx=30, pady=30)
-        
-        # Seções
+
         self.create_length_section(content_frame)
         self.create_options_section(content_frame)
         self.create_strength_indicator(content_frame)
         self.create_generate_section(content_frame)
         self.create_result_section(content_frame)
-        
-        # Bind mousewheel para scroll
+
         def _on_mousewheel(event):
             canvas.yview_scroll(int(-1*(event.delta/120)), "units")
         
@@ -84,8 +76,7 @@ class PasswordGenerator:
     def create_header(self, parent):
         header_frame = tk.Frame(parent, bg=self.colors['background'])
         header_frame.pack(fill='x', pady=(0, 10))
-        
-        # Título
+
         title = tk.Label(header_frame, text="Gerador de Passwords",
                         font=("Segoe UI", 24, "bold"),
                         fg=self.colors['text'],
@@ -99,17 +90,14 @@ class PasswordGenerator:
         subtitle.pack(pady=(5, 0))
         
     def create_length_section(self, parent):
-        # Seção comprimento
         length_frame = tk.Frame(parent, bg=self.colors['card'])
         length_frame.pack(fill='x', pady=(0, 25))
-        
-        # Título da seção
+
         tk.Label(length_frame, text="Comprimento da Password",
                 font=("Segoe UI", 12, "bold"),
                 fg=self.colors['text'],
                 bg=self.colors['card']).pack(anchor='w')
-        
-        # Container para slider e valor
+
         slider_container = tk.Frame(length_frame, bg=self.colors['card'])
         slider_container.pack(fill='x', pady=(10, 0))
         
@@ -126,16 +114,14 @@ class PasswordGenerator:
                                     troughcolor='#e2e8f0',
                                     command=self.update_strength)
         self.length_scale.pack(side='left', fill='x', expand=True)
-        
-        # Valor atual
+
         self.length_label = tk.Label(slider_container, 
                                     text=f"{self.password_length.get()} caracteres",
                                     font=("Segoe UI", 10, "bold"),
                                     fg=self.colors['primary'],
                                     bg=self.colors['card'])
         self.length_label.pack(side='right', padx=(10, 0))
-        
-        # Atualizar label quando slider muda
+
         self.length_scale.bind('<Motion>', self.update_length_label)
         self.length_scale.bind('<ButtonRelease-1>', self.update_length_label)
         
@@ -149,11 +135,9 @@ class PasswordGenerator:
                 fg=self.colors['text'],
                 bg=self.colors['card']).pack(anchor='w')
         
-        # Container para checkboxes
         checkbox_frame = tk.Frame(options_frame, bg=self.colors['card'])
         checkbox_frame.pack(fill='x', pady=(15, 0))
         
-        # Checkboxes
         self.create_checkbox(checkbox_frame, "Maiúsculas (A-Z)", 
                            self.include_uppercase, 0)
         self.create_checkbox(checkbox_frame, "Minúsculas (a-z)", 
@@ -175,7 +159,6 @@ class PasswordGenerator:
         cb.pack(anchor='w', pady=5)
         
     def create_strength_indicator(self, parent):
-        # Indicador de força
         strength_frame = tk.Frame(parent, bg=self.colors['card'])
         strength_frame.pack(fill='x', pady=(0, 25))
         
@@ -184,7 +167,6 @@ class PasswordGenerator:
                 fg=self.colors['text'],
                 bg=self.colors['card']).pack(anchor='w')
         
-        # Container para barras
         bars_container = tk.Frame(strength_frame, bg=self.colors['card'])
         bars_container.pack(fill='x', pady=(10, 0))
         
@@ -203,7 +185,6 @@ class PasswordGenerator:
                                       bg=self.colors['card'])
         self.strength_label.pack(anchor='w', pady=(8, 0))
         
-        # Atualizar força inicial
         self.update_strength()
         
     def create_generate_section(self, parent):
@@ -225,7 +206,6 @@ class PasswordGenerator:
                                      cursor='hand2')
         self.generate_btn.pack(fill='x')
         
-        # Efeito hover
         self.generate_btn.bind('<Enter>', lambda e: self.generate_btn.configure(bg='#1d4ed8'))
         self.generate_btn.bind('<Leave>', lambda e: self.generate_btn.configure(bg=self.colors['primary']))
         
@@ -239,7 +219,6 @@ class PasswordGenerator:
                 fg=self.colors['text'],
                 bg=self.colors['card']).pack(anchor='w')
         
-        # Container para resultado
         text_container = tk.Frame(result_frame, bg='#f1f5f9', relief='solid', bd=1)
         text_container.pack(fill='x', pady=(10, 0))
         
@@ -287,7 +266,6 @@ class PasswordGenerator:
                              cursor='hand2')
         clear_btn.pack(side='left', padx=(10, 0))
         
-        # Efeitos hover para botões
         copy_btn.bind('<Enter>', lambda e: copy_btn.configure(bg='#059669'))
         copy_btn.bind('<Leave>', lambda e: copy_btn.configure(bg=self.colors['success']))
         clear_btn.bind('<Enter>', lambda e: clear_btn.configure(bg='#475569'))
@@ -301,12 +279,10 @@ class PasswordGenerator:
         score = 0
         length = self.password_length.get()
         
-        # Pontos pelo comprimento
         if length >= 8: score += 1
         if length >= 12: score += 1
         if length >= 16: score += 1
         
-        # Pontos pelos tipos de caracteres
         char_types = sum([
             self.include_uppercase.get(),
             self.include_lowercase.get(),
@@ -318,7 +294,6 @@ class PasswordGenerator:
         if char_types >= 3: score += 1
         if char_types >= 4: score += 1
         
-        # Atualizar barras visuais
         colors = ['#e2e8f0', '#ef4444', '#f59e0b', '#10b981']
         labels = ['Muito Fraca', 'Fraca', 'Média', 'Forte', 'Muito Forte']
         label_colors = ['#64748b', '#ef4444', '#f59e0b', '#10b981', '#059669']
@@ -385,7 +360,6 @@ class PasswordGenerator:
     def clear_password(self):
         self.result_text.delete(1.0, tk.END)
 
-# Executar aplicação
 if __name__ == "__main__":
     root = tk.Tk()
     app = PasswordGenerator(root)
